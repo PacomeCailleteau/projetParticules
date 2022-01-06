@@ -27,30 +27,31 @@ func (s *System) Update() {
 			s.Content = remove(s.Content, p)
 			break
 		}
-		s.Content[p].ScaleX -= 0.005
-		s.Content[p].ScaleY -= 0.005 
+		s.Content[p].ScaleX -= 0.01
+		s.Content[p].ScaleY -= 0.01 
 		if s.Content[p].ScaleX <= 0{
 			remove(s.Content, p)
 			break
 		}
 	}
-	//SpawnRate
+	
 	rand.Seed(time.Now().UnixNano()) 
 	spdX := rand.Float64()
 	spdX -= 0.5
 	spdY := rand.Float64()
 	spdY -= 0.5
 	s.reste += float64(config.General.SpawnRate)
-
+	//SpawnRate
 	for s.reste >=1{
 		s.Content = append(s.Content, Particle{
-			PositionX: float64(config.General.SpawnX),
-			PositionY: float64(config.General.SpawnY),
-			ScaleX: 2, ScaleY: 2,
+			PositionX: rand.Float64()*float64(config.General.WindowSizeX),
+			PositionY: rand.Float64()*float64(config.General.WindowSizeY),
+			ScaleX: 2, 
+			ScaleY: 2,
 			ColorRed: rand.Float64(), ColorGreen: rand.Float64(), ColorBlue: rand.Float64(),
 			Opacity: 1,
-			SpeedX: spdX *50, 
-			SpeedY: spdY *50,
+			SpeedX: spdX *10, 
+			SpeedY: spdY *10,
 		})
 		log.Print(len(s.Content))
 
