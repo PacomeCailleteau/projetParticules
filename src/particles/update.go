@@ -12,30 +12,30 @@ func (s *System) Update() {
 	var particules []Particle = s.Content
 
 	particules = deplacement(particules)//mise à jour de la position
-	particules = grossissement(particules,false,-0.005)//mise à jour de la taille des particules
+	particules = grossissement(particules,true,0.98)//mise à jour de la taille des particules
 	particules = condition_suppression(particules, -10, float64(config.General.WindowSizeX), -10, float64(config.General.WindowSizeY), 0, -1)
 	
-	rand.Seed(time.Now().UnixNano())//permet de générer des nombres aléatoire grâce à une graine étant fonction de l'heure/date/...
 
 	s.reste += float64(config.General.SpawnRate)//ajouter la valeur de demande du nombre de particules à ajouter
 	//SpawnRate
 	for s.reste >=1{//tant que des particules sont à faire apparaitre
+		rand.Seed(time.Now().UnixNano())//permet de générer des nombres aléatoire grâce à une graine étant fonction de l'heure/date/...
 		//déclaration des variables
 		var x float64 = rand.Float64()*float64(config.General.WindowSizeX)
 		var y float64 = rand.Float64()*float64(config.General.WindowSizeY)
-		var taille float64 = 2
+		var taille float64 = 0.5
 		var vitesse float64 = 5
 		//utilisation des variables
 		particules = ajout(particules, x, y, taille, vitesse)
 
-		log.Print(len(particules))
-
 		s.reste -=1//noter qu'une particule a été ajoutée
 	}
+	s.Content = particules
+	log.Print(len(particules))
 }
 
-func suppression(particules []Particle, s int) []Particle {
-	return append(particules[:s], particules[s+1:]...)
+func suppression(particules []Particle, i int) []Particle {
+	return append(particules[:i], particules[i+1:]...)
 }
 
 func deplacement(particules []Particle) []Particle{
@@ -51,11 +51,13 @@ func condition_suppression(particules []Particle, xmin,xmax, ymin,ymax float64, 
 		//déclaration des variables
 		var PositionX float64 = particules[i].PositionX
 		var PositionY float64 = particules[i].PositionY
+		var tailleX float64 = particules[i].ScaleX
+		var tailleY float64 = particules[i].ScaleY
 		//tests
 		if PositionX < xmin || PositionX > xmax ||
 		PositionY < ymin || PositionY > ymax ||
-		particules[i].ScaleX < taillemin || particules[i].ScaleY < taillemin ||
-		(particules[i].ScaleX > taillemax || particules[i].ScaleY > taillemax) && taillemax !=-1{
+		tailleX < taillemin || tailleY < taillemin ||
+		(tailleX > taillemax || tailleY > taillemax) && taillemax !=-1{
 			particules = suppression(particules, i)}
 	}
 	return particules

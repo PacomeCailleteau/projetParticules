@@ -6,7 +6,7 @@
 	"Debug": true,
 	"InitNumParticles": 100,
 	"RandomSpawn": true,
-	"SpawnX": 400,
+	"SpawnX": 300,
 	"SpawnY": 300,
-	"SpawnRate": 0.3
+	"SpawnRate": 50
 }

@@ -8,6 +8,7 @@ import ("project-particles/config";"math/rand";"time")
 // Dans sa version actuelle, cette fonction affiche une particule blanche au
 // centre de l'écran.
 func NewSystem() System {
+	/*
 	rand.Seed(time.Now().UnixNano())
 	var S System = System{Content: []Particle{}}
 	if config.General.RandomSpawn{
@@ -45,6 +46,27 @@ func NewSystem() System {
 			}
 			S.Content = append(S.Content, p)
 		}
+	}*/
+	rand.Seed(time.Now().UnixNano())
+	var nombre_particules int = config.General.InitNumParticles
+	var particules []Particle
+	if config.General.RandomSpawn{
+		for i := 0; i < nombre_particules; i++ {
+			rand.Seed(time.Now().UnixNano())
+			var x float64 = rand.Float64()* float64(config.General.WindowSizeX)
+			var y float64 = rand.Float64()* float64(config.General.WindowSizeY)
+			var taille float64 = (rand.Float64()+1)*1.5
+			var vitesse float64 = rand.Float64()*8
+			particules = ajout(particules,x,y,taille,vitesse)
+		}
+	}else{
+		var x float64 = float64(config.General.SpawnX)
+		var y float64 = float64(config.General.SpawnY)
+		var taille float64 = (rand.Float64()+1)*1.5
+		var vitesse float64 = rand.Float64()*8
+		for i := 0; i < nombre_particules; i++ {
+			particules = ajout(particules,x,y,taille,vitesse)
+		}
 	}
-	return S
+	return System{Content: particules, reste: 0}
 }
