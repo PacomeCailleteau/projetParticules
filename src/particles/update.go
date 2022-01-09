@@ -1,6 +1,6 @@
 package particles
 
-import ("math/rand";"time";"project-particles/config";"log")
+import ("math/rand";"time";"project-particles/config";"log";"math")
 // Update mets à jour l'état du système de particules (c'est-à-dire l'état de
 // chacune des particules) à chaque pas de temps. Elle est appellée exactement
 // 60 fois par seconde (de manière régulière) par la fonction principale du
@@ -12,7 +12,7 @@ func (s *System) Update() {
 	var particules []Particle = s.Content
 
 	particules = deplacement(particules)//mise à jour de la position
-	particules = grossissement(particules,true,0.98)//mise à jour de la taille des particules
+	particules = grossissement(particules,true,0.999)//mise à jour de la taille des particules
 	particules = condition_suppression(particules, -10, float64(config.General.WindowSizeX), -10, float64(config.General.WindowSizeY), 0, -1)
 	
 
@@ -21,9 +21,16 @@ func (s *System) Update() {
 	for s.reste >=1{//tant que des particules sont à faire apparaitre
 		rand.Seed(time.Now().UnixNano())//permet de générer des nombres aléatoire grâce à une graine étant fonction de l'heure/date/...
 		//déclaration des variables
-		var x float64 = rand.Float64()*float64(config.General.WindowSizeX)
-		var y float64 = rand.Float64()*float64(config.General.WindowSizeY)
-		var taille float64 = 0.5
+		var x float64
+		var y float64
+		if config.General.RandomSpawn == true{
+			x = rand.Float64()*float64(config.General.WindowSizeX)
+			y = rand.Float64()*float64(config.General.WindowSizeY)
+		}else{
+			x = float64(config.General.SpawnX)
+			y = float64(config.General.SpawnY)
+		}
+		var taille float64 = 1
 		var vitesse float64 = 5
 		//utilisation des variables
 		particules = ajout(particules, x, y, taille, vitesse)
@@ -76,15 +83,19 @@ func grossissement(particules []Particle, produit bool, size float64) []Particle
 }
 
 func ajout(particules []Particle, PositionX, PositionY, taille, mult_vitesse float64) []Particle{
-	particules = append(particules, Particle{//ajout d'une particule dont...
-			PositionX: PositionX,//sa position en X
-			PositionY: PositionY,//sa position en Y
-			ScaleX: taille,//sa taille en X
-			ScaleY: taille,//sa taille en Y
-			ColorRed: rand.Float64(), ColorGreen: rand.Float64(), ColorBlue: rand.Float64(),//sa couleur aléatoire en RGB
-			Opacity: 1,//son opacité de 100%
-			SpeedX: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en X
-			SpeedY: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en Y
-	})
-	return particules
+    var angle float64 = rand.Float64()*2*math.Pi
+    particules = append(particules, Particle{//ajout d'une particule dont...
+        PositionX: PositionX,//sa position en X
+        PositionY: PositionY,//sa position en Y
+        ScaleX: taille,//sa taille en X
+        ScaleY: taille,//sa taille en Y
+        ColorRed: rand.Float64(), ColorGreen: rand.Float64(), ColorBlue: rand.Float64(),//sa couleur aléatoire en RGB
+        Opacity: 1,//son opacité de 100%
+        SpeedX: math.Cos(angle)*mult_vitesse,
+        SpeedY: math.Sin(angle)*mult_vitesse,
+        /*SpeedX: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en X
+        SpeedY: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en Y
+        */
+    })
+    return particules
 }

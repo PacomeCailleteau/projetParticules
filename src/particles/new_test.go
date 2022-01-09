@@ -17,6 +17,18 @@ func Test_Creation_Particules(t *testing.T){
 	}
 }
 
+func Test_Random_Spawn(t *testing.T){
+	config.General.RandomSpawn = false
+	config.General.SpawnX = 400
+	config.General.SpawnY = 300
+	var systeme System = NewSystem()
+	for i := 0; i<len(systeme.Content); i++{
+		if systeme.Content[i].PositionX != 400 || systeme.Content[i].PositionY != 300{
+			t.Error("Ce n'est pas le bon endroit d'apparition")
+		}
+	}
+}
+
 func Test_deplacement(t *testing.T){
 	var particules_temoin []Particle = NewSystem().Content
 	var particules_test []Particle = deplacement(NewSystem().Content)
@@ -31,60 +43,6 @@ func Test_deplacement(t *testing.T){
 		t.Error("Les position n'ont pas été changées.")
 	} 
 }
-/*
-func Test_deplacement_v2(t *testing.T){
-	var PositionX float64 = float64(800)/2
-	var PositionY float64 = float64(600)/2
-	var particules_temoin []Particle = ajout([]Particle{}, PositionX, PositionY, 1, 10)
-	fmt.Println(particules_temoin[0].PositionX, particules_temoin[0].PositionY)
-	var particules_test []Particle = particules_temoin
-	fmt.Println(particules_temoin[0].PositionX, particules_temoin[0].PositionY)
-	particules_test = deplacement(particules_test)
-	fmt.Println(particules_temoin[0].PositionX, particules_temoin[0].PositionY)
-	if particules_test[0].PositionX == particules_temoin[0].PositionX &&
-	particules_test[0].PositionY == particules_temoin[0].PositionY{
-		t.Error("La particule n'a pas bougé.", particules_test[0].PositionX, particules_temoin[0].PositionX, particules_test[0].PositionY, particules_temoin[0].PositionY)
-	}
-}
-*/
-/*
-func Test_deplacement_v3(t *testing.T){
-	var PositionX float64 = 400
-	var PositionY float64 = 300
-	var particules_temoin []Particle = ajout([]Particle{},PositionX,PositionY,1,1)
-	fmt.Println("--------")
-	fmt.Println(particules_temoin)
-	var affichage Particle = ajout([]Particle{},PositionX,PositionY,1,1)[0]
-	fmt.Println(affichage)
-	fmt.Println("//////////////////")
-	fmt.Println("affichage.PositionX :",affichage.PositionX)
-	fmt.Println("affichage.PositionY :",affichage.PositionY)
-	fmt.Println("affichage.Rotation :",affichage.Rotation)
-	fmt.Println("affichage.ScaleX :",affichage.ScaleX)
-	fmt.Println("affichage.ScaleY :",affichage.ScaleY)
-	fmt.Println("affichage.SpeedX :",affichage.SpeedX)
-	fmt.Println("affichage.SpeedY :",affichage.SpeedY)
-	fmt.Println("Color RGB :",affichage.ColorRed,affichage.ColorGreen,affichage.ColorBlue)
-	fmt.Println("affichage.Opacity :",affichage.Opacity)
-	fmt.Println("//////////////////")
-	var particules_test []Particle = particules_temoin
-	fmt.Println("--------")
-	fmt.Println(particules_test)
-	particules_test = deplacement(particules_test)
-	fmt.Println("--------")
-	fmt.Println(particules_test)
-	fmt.Println(particules_temoin)
-	fmt.Println(deplacement(particules_test))
-	fmt.Println("--------")
-	fmt.Println(len(particules_test))
-	for i := 0; i < len(particules_test); i++ {
-		if particules_test[i].PositionX == particules_temoin[i].PositionX &&
-		particules_test[i].PositionY == particules_temoin[i].PositionY{
-			t.Error("Les positions n'ont été changées", particules_temoin[i].PositionX,particules_test[i].PositionX)
-		}
-	}
-}
-*/
 
 func Test_deplacement_v4(t *testing.T){
 	var PositionX float64 = 400
@@ -238,21 +196,25 @@ func Test_Ajout_1(t *testing.T){
 	if test[len(test)-1].Rotation != 0{
 		t.Error("Rotation non nulle")}
 	if test[len(test)-1].ScaleX != 4{
-		t.Error("Taille X différente de 7.")}
+		t.Error("Taille X différente de 4.")}
 	if test[len(test)-1].ScaleY != 4{
-		t.Error("Taille Y différente de 7.")}
+		t.Error("Taille Y différente de 4.")}
+	if (test[len(test)-1].SpeedX)*(test[len(test)-1].SpeedX)+(test[len(test)-1].SpeedY)*(test[len(test)-1].SpeedY) >= float64(7*7)+1e-12 || 
+		(test[len(test)-1].SpeedX)*(test[len(test)-1].SpeedX)+(test[len(test)-1].SpeedY)*(test[len(test)-1].SpeedY) <= float64(7*7)-1e-12{
+		t.Error("Speed X différente de 7.",(test[len(test)-1].SpeedX)*(test[len(test)-1].SpeedX)+(test[len(test)-1].SpeedY)*(test[len(test)-1].SpeedY))}
 }
 
-/*func ajout(particules []Particle, PositionX, PositionY, taille, mult_vitesse float64) []Particle{
-	particules = append(particules, Particle{//ajout d'une particule dont...
-			PositionX: PositionX,//sa position en X
-			PositionY: PositionY,//sa position en Y
-			ScaleX: taille,//sa taille en X
-			ScaleY: taille,//sa taille en Y
-			ColorRed: rand.Float64(), ColorGreen: rand.Float64(), ColorBlue: rand.Float64(),//sa couleur aléatoire en RGB
-			Opacity: 1,//son opacité de 100%
-			SpeedX: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en X
-			SpeedY: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en Y
-	})
-	return particules
-}*/
+func Test_Ajout_2(t *testing.T){
+	var systeme System 
+	systeme.Content = ajout(systeme.Content,10,3,4,7)
+	if len(systeme.Content) != 1{
+		t.Error("Il n'y a pas le bon nombre de particules crées")
+	}
+}
+
+func Test_Creation_Particule_New_System(t *testing.T){
+	var systeme System = NewSystem()
+	if len(systeme.Content) == 0{
+		t.Error("La particule n'a été ajoutée")
+	}
+}

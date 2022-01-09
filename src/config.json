@@ -4,9 +4,9 @@
   	"WindowSizeY": 600,
 	"ParticleImage": "assets/particle.png",
 	"Debug": true,
-	"InitNumParticles": 100,
+	"InitNumParticles": 140,
 	"RandomSpawn": true,
-	"SpawnX": 300,
+	"SpawnX": 400,
 	"SpawnY": 300,
-	"SpawnRate": 1.66666677
+	"SpawnRate": 2
 }
