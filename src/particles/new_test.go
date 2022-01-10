@@ -121,7 +121,7 @@ func Test_grossissement_Additif_Positif(t* testing.T){
 
 func Test_grossissement_Additif_Negatif(t* testing.T){
 	var taille float64 = 100//initialisation d'une variable de taille valant 100 compris en pixels
-	var particules_temoin []Particle = ajout([]Particle{}, 0, 0, taille, 1))//création d'un tableau temoin de particules contenant une particule de taille précédemment défini
+	var particules_temoin []Particle = ajout([]Particle{}, 0, 0, taille, 1)//création d'un tableau temoin de particules contenant une particule de taille précédemment défini
 	var particules_test []Particle = grossissement(particules_temoin, false, -10)//application de la fonction de grossissement tel que la taille doit être décrémentée de 10 pixels
 	if particules_test[0].ScaleX != float64(100)-10{//si la taille n'est pas celle attendue (90) (le float sert à ignorer l'imprecision des calculs entre différentes bases)...
 		t.Error("La particule n'a pas maigri.")
