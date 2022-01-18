@@ -14,16 +14,30 @@ func (s *System) Update() {
 	//Actualisation de la position des particules dans le tableau en fonction de leur vitesse
 	particules = deplacement(particules)//mise à jour de la position
 
-	particules = rebond_bords(particules)
+	if config.General.Rebond_bords{particules = rebond_bords(particules)}
 
-	particules = gravitation(particules)
+	if config.General.Rebond_particules{particules = rebond_particules(particules)}
+	
+	if config.General.Gravite != 0{
+		particules = gravite(particules)
+	}
+
+
+	if config.General.Gravitation != 0{
+		particules = gravitation(particules)
+	}
+	if config.General.Acceleration != 1{
+		for i := 0; i < len(particules); i++ {
+			particules[i] = acceleration(particules[i])
+		}
+	}
 
 	//Actualisation de la taille des particules en fonction de deux paramètres dans la fonction
 	particules = grossissement(particules,true,1)//mise à jour de la taille des particules
 
 	//Suppression des particules à oublier
-	particules = condition_suppression(particules, -20, float64(config.General.WindowSizeX)+20, -20, float64(config.General.WindowSizeY)+20, 0, -1)
-	
+	particules = condition_suppression(particules, float64(config.General.ExterieurDeLecranXmin), float64(config.General.ExterieurDeLecranXmax), float64(config.General.ExterieurDeLecranYmin), float64(config.General.ExterieurDeLecranYmax), 0, -1)
+
 	//Calcul et ajout du bon nombre de particules à afficher durant l'appel de la fonction update dépandemment du SpawnRate
 	s.reste += float64(config.General.SpawnRate)//ajouter la valeur de demande du nombre de particules à ajouter
 	//SpawnRate
@@ -40,15 +54,15 @@ func (s *System) Update() {
 			x = float64(config.General.SpawnX)
 			y = float64(config.General.SpawnY)
 		}
-		var taille float64 = 0.5//Initialisation de la taille de la particule
-		var vitesse float64 = 5 //Initialisation de la vitesse de la particule
+		var taille float64 = config.General.InitSizeParticles//Initialisation de la taille de la particule
+		var vitesse float64 = config.General.InitVitesseParticles //Initialisation de la vitesse de la particule
 		//utilisation des variables
 		particules = ajout(particules, x, y, taille, vitesse)
 
 		s.reste -=1//noter qu'une particule a été ajoutée
 	}
 	s.Content = particules
-	log.Print(len(particules))
+	log.Print(len(particules)," énergie = ",energie(particules))
 }
 
 /*La fonction suppression sert à supprimer une particule contenue
@@ -108,10 +122,10 @@ func rebond_bords(particules []Particle) []Particle{
 	return particules
 }
 
-func gravitation(particules []Particle) []Particle{
-	var gravitation = config.General.Gravitation
+func gravite(particules []Particle) []Particle{
+	var gravite = config.General.Gravite
 	for i := 0; i < len(particules); i++ {
-		particules[i].SpeedY += gravitation
+		particules[i].SpeedY += gravite
 	}
 	return particules
 }
@@ -187,5 +201,98 @@ func ajout(particules []Particle, PositionX, PositionY, taille, mult_vitesse flo
         SpeedY: 2*(rand.Float64()-0.5)*mult_vitesse,//sa vitesse est aléatoire entre -5 et 5 en Y
         */
     })
+    return particules
+}
+
+
+func abs(n float64) float64{
+    if n < 0{return -n}else{return n}}
+
+
+func collision(particule1, particule2 Particle) bool{
+    if procheX(particule1,particule2) && procheY(particule1,particule2){return true}else{return false}}
+
+func procheX(particule1, particule2 Particle)bool{
+    var distanceX float64 = abs(particule2.PositionX - particule1.PositionX)
+    if particule1.PositionX < particule2.PositionX{//X 1-->2
+        if distanceX <= particule1.ScaleX*10{return true}
+    }else{//X 2-->1
+        if distanceX <= particule2.ScaleX*10{return true}}
+    return false}
+
+func procheY(particule1, particule2 Particle)bool{
+    var distanceY float64 = abs(particule2.PositionY - particule1.PositionY)
+    if particule1.PositionY < particule2.PositionY{//X 1-->2
+        if distanceY <= particule1.ScaleY*10{return true}
+    }else{//X 2-->1
+        if distanceY <= particule2.ScaleY*10{return true}}
+    return false}
+
+func rebond_particules(particules []Particle) []Particle{
+    for i := 0; i < len(particules); i++ {//pour toutes les particules
+        for j := i+1; j < len(particules); j++ {//pour toutes les particules suivantes
+            if i != j{
+                if collision(particules[i],particules[j]){
+                    particules[i].SpeedX,particules[j].SpeedX = particules[j].SpeedX,particules[i].SpeedX
+                    particules[i].SpeedY,particules[j].SpeedY = particules[j].SpeedY,particules[i].SpeedY
+    }}}}
+    return particules}
+
+func acceleration(particule Particle)Particle{
+    particule.SpeedX *= config.General.Acceleration
+    particule.SpeedY *= config.General.Acceleration
+    return particule
+}
+
+func energie(particules []Particle)float64{
+    var energie float64
+    //centre X
+    var centreX float64
+    for i := 0; i < len(particules); i++ {
+        centreX += particules[i].PositionX
+    }
+    centreX /= float64(len(particules))
+    //centre Y
+    var centreY float64
+    for i := 0; i < len(particules); i++ {
+        centreY += particules[i].PositionY
+    }
+    centreY /= float64(len(particules))
+    //calcul énergie mécanique
+    for i := 0; i < len(particules); i++ {//pour toutes les particules
+        var energie_cinetique float64 = (particules[i].SpeedX*particules[i].SpeedX+particules[i].SpeedY*particules[i].SpeedY)/2
+        var distanceX float64 = particules[i].PositionX-centreX
+        var distanceY float64 = particules[i].PositionY-centreY
+        var energie_potentielle float64 = math.Sqrt(distanceX*distanceX + distanceY*distanceY)
+        energie+= energie_cinetique + energie_potentielle}
+    return math.Log(energie)
+}
+
+func attraction(particule Particle, force float64, angle float64, position bool, x, y float64)Particle{
+    if position{//si attraction vers un point
+        var distanceX float64 = x - particule.PositionX
+        var distanceY float64 = y - particule.PositionY
+        angle = math.Atan(distanceY/distanceX)
+    }else{
+        angle *= (2*math.Pi)/360
+    }
+    if particule.PositionX < x{force=-force}
+    particule.SpeedX += math.Cos(angle)*force
+    particule.SpeedY += math.Sin(angle)*force
+    return particule
+}
+
+func gravitation(particules []Particle)[]Particle{
+    for i := 0; i < len(particules); i++ {
+        for j := 0; j < len(particules); j++ {
+            if i != j{
+                var distance float64 = (particules[i].PositionX - particules[j].PositionX)*(particules[i].PositionX - particules[j].PositionX) + (particules[i].PositionY - particules[j].PositionY)*(particules[i].PositionY - particules[j].PositionY)
+                if distance < 50{
+                	distance = 50
+                }
+                particules[i] = attraction(particules[i], config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX, particules[j].PositionY)
+            }
+        }
+    }
     return particules
 }

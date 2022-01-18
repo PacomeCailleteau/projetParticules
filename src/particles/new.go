@@ -16,14 +16,14 @@ func NewSystem() System {
 			rand.Seed(time.Now().UnixNano())
 			var x float64 = rand.Float64()* float64(config.General.WindowSizeX)
 			var y float64 = rand.Float64()* float64(config.General.WindowSizeY)
-			var taille float64 = rand.Float64()*0.5
-			var vitesse float64 = 5
+			var taille float64 = /*rand.Float64()**/config.General.InitSizeParticles
+			var vitesse float64 = config.General.InitVitesseParticles
 			particules = ajout(particules,x,y,taille,vitesse)
 		}
 	}else{
 		var x float64 = float64(config.General.SpawnX)
 		var y float64 = float64(config.General.SpawnY)
-		var taille float64 = rand.Float64()*0.5
+		var taille float64 = rand.Float64()*2
 		var vitesse float64 = 5
 		for i := 0; i < nombre_particules; i++ {
 			particules = ajout(particules,x,y,taille,vitesse)

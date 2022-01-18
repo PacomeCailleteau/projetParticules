@@ -223,3 +223,112 @@ func Test_Spawn_Rate1(t *testing.T){
 		t.Error("Le taux d(apparition est mauvais")
 	}
 }
+
+func Test_Rebond(t *testing.T){
+	config.General.WindowSizeX = 800
+	config.General.WindowSizeY = 600
+	var systeme System
+	var particule Particle
+	systeme.Content = append(systeme.Content, particule)
+	systeme.Content[0].SpeedX = -1000
+	systeme.Content[0].PositionX = 400
+	systeme.Content[0].PositionY = 300
+	systeme.Update()	
+	for i := 0; i < len(systeme.Content); i++ {
+		if systeme.Content[i].PositionX > 800{
+			t.Error("La particule sort de la fenêtre donc elle ne rebondie pas")
+		}
+		if systeme.Content[i].PositionX < 0{
+			t.Error("La particule sort de la fenêtre donc elle ne rebondie pas")
+		}
+		if systeme.Content[i].PositionY > 600{
+			t.Error("La particule sort de la fenêtre donc elle ne rebondie pas")
+		}
+		if systeme.Content[i].PositionY < 0{
+			t.Error("La particule sort de la fenêtre donc elle ne rebondie pas")
+		}
+	}
+}
+
+func Test_Gravitation(t *testing.T){
+	config.General.Gravitation = 6
+	var systeme System
+	var particule Particle
+	systeme.Content = append(systeme.Content,particule)
+	systeme.Content[0].SpeedY = -5
+	systeme.Content[0].PositionX = 400
+	systeme.Content[0].PositionY = 300
+	systeme.Content = gravitation(systeme.Content)
+	for i := 0; i < len(systeme.Content); i++ {
+		if systeme.Content[i].PositionY > 300{
+			t.Error("La particule n'est pas soumise à la gravitée")
+		}
+		if systeme.Content[i].SpeedY < 0{
+			t.Error("La particule monte")
+		}
+	}
+}
+
+func Test_collision1(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.PositionX = 290
+	particule1.PositionY = 190
+	particule2.PositionX = 300
+	particule2.PositionY = 200
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	if !collision(particule1,particule2){
+		t.Error("La particule1 est censée être en collision avec un x inférieur et un y supérieur à la particule2")
+	}
+}
+
+func Test_collision2(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.PositionX = 280
+	particule1.PositionY = 180
+	particule2.PositionX = 300
+	particule2.PositionY = 200
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	if !collision(particule1,particule2){
+		t.Error("La particule1 est censée être en collision avec le coin inférieur droit de la particule2")
+	}
+}
+
+func Test_collision3(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.PositionX = 300
+	particule1.PositionY = 180
+	particule2.PositionX = 300
+	particule2.PositionY = 200
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	if !collision(particule1,particule2){
+		t.Error("La particule1 est censée être en collision avec le segment inférieur de la particule2")
+	}
+}
+
+func Test_collision4(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.PositionX = 290
+	particule1.PositionY = 190
+	particule2.PositionX = 290
+	particule2.PositionY = 190
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	if !collision(particule1,particule2){
+		t.Error("La particule1 est censée être en collision avec la aprticule2 car même coordonnées")
+	}
+}

@@ -13,10 +13,20 @@ type Config struct {
 	ParticleImage            string
 	Debug                    bool
 	InitNumParticles         int
+	InitSizeParticles		 float64
+	InitVitesseParticles	 float64
 	RandomSpawn              bool
 	SpawnX, SpawnY           int
 	SpawnRate                float64
+	Gravite					 float64
 	Gravitation				 float64
+	ExterieurDeLecranXmin	 float64
+	ExterieurDeLecranXmax	 float64
+	ExterieurDeLecranYmin	 float64
+	ExterieurDeLecranYmax	 float64
+	Rebond_bords			 bool
+	Rebond_particules		 bool
+	Acceleration			 float64
 }
 
 var General Config
