@@ -19,4 +19,5 @@ type Particle struct {
 	SpeedX, SpeedY					float64
 	ColorRed, ColorGreen, ColorBlue float64
 	Opacity                         float64
+	Duree_Vie						float64
 }

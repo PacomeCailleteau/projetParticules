@@ -11,6 +11,15 @@ func (s *System) Update() {
 
 	var particules []Particle = s.Content
 
+	if config.General.Duree_Vie > 0{
+		for i := 0; i < len(particules); i++ {
+			particules[i].Duree_Vie++
+			if particules[i].Duree_Vie > config.General.Duree_Vie{
+				particules = suppression(particules,i)
+			}
+		}
+	}
+
 	//Actualisation de la position des particules dans le tableau en fonction de leur vitesse
 	particules = deplacement(particules)//mise à jour de la position
 
@@ -260,10 +269,10 @@ func energie(particules []Particle)float64{
     centreY /= float64(len(particules))
     //calcul énergie mécanique
     for i := 0; i < len(particules); i++ {//pour toutes les particules
-        var energie_cinetique float64 = (particules[i].SpeedX*particules[i].SpeedX+particules[i].SpeedY*particules[i].SpeedY)/2
+        var energie_cinetique float64 = masse(particules[i])*(particules[i].SpeedX*particules[i].SpeedX+particules[i].SpeedY*particules[i].SpeedY)/2
         var distanceX float64 = particules[i].PositionX-centreX
         var distanceY float64 = particules[i].PositionY-centreY
-        var energie_potentielle float64 = math.Sqrt(distanceX*distanceX + distanceY*distanceY)
+        var energie_potentielle float64 = math.Sqrt(distanceX*distanceX + distanceY*distanceY)*masse(particules[i])
         energie+= energie_cinetique + energie_potentielle}
     return math.Log(energie)
 }
@@ -286,13 +295,29 @@ func gravitation(particules []Particle)[]Particle{
     for i := 0; i < len(particules); i++ {
         for j := 0; j < len(particules); j++ {
             if i != j{
-                var distance float64 = (particules[i].PositionX - particules[j].PositionX)*(particules[i].PositionX - particules[j].PositionX) + (particules[i].PositionY - particules[j].PositionY)*(particules[i].PositionY - particules[j].PositionY)
-                if distance < 50{
-                	distance = 50
+                var distance float64 = ((particules[i].PositionX+particules[i].ScaleX*5-particules[j].ScaleX*5) - (particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5))*((particules[i].PositionX+particules[i].ScaleX*5-particules[j].ScaleX*5) - (particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5)) + ((particules[i].PositionY+particules[i].ScaleY*5-particules[j].ScaleY*5) - (particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5))*((particules[i].PositionY+particules[i].ScaleY*5-particules[j].ScaleY*5) - (particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5))
+                if (distance < particules[i].ScaleX*10 || distance < particules[j].ScaleX*10) && config.General.Merge{
+                	particules[i] = growth(particules[i],particules[j].ScaleX*particules[j].ScaleY)
+                	particules[i].SpeedX += particules[j].SpeedX*(masse(particules[j])/masse(particules[i]))
+                	particules[i].SpeedY += particules[j].SpeedY*(masse(particules[j])/masse(particules[i]))
+                	particules[i].SpeedX *= masse(particules[j])/(masse(particules[i])+masse(particules[j]))
+                	particules[i].SpeedY *= masse(particules[j])/(masse(particules[i])+masse(particules[j]))
+                	particules = suppression(particules,j)
+           		}else{
+                	if distance < 60{distance = 60}
+           			particules[i] = attraction(particules[i], masse(particules[j])*config.General.Gravitation*(1/(distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5)
+           			particules[i] = attraction(particules[i], -100*masse(particules[j])*config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5)
                 }
-                particules[i] = attraction(particules[i], config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX, particules[j].PositionY)
             }
         }
     }
     return particules
+}
+
+func masse(particule Particle)float64{return particule.ScaleX*particule.ScaleY}
+
+func growth(particule Particle, x float64)Particle{
+	particule.ScaleX = math.Sqrt(particule.ScaleX*particule.ScaleY+x)
+	particule.ScaleY = math.Sqrt(particule.ScaleX*particule.ScaleY+x)
+	return particule
 }

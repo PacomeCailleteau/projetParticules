@@ -14,7 +14,7 @@ import (
 // c'est précisé dans le sujet.
 func (g *game) Draw(screen *ebiten.Image) {
 	for _, p := range g.system.Content {
-		if p.Opacity > 0 || p.PositionX > config.General.ExterieurDeLecranXmin || p.PositionX < config.General.ExterieurDeLecranXmax || p.PositionY > config.General.ExterieurDeLecranYmin || p.PositionY < config.General.ExterieurDeLecranYmax{
+		if p.Opacity > 0 && p.PositionX > config.General.ExterieurDeLecranXmin && p.PositionX < config.General.ExterieurDeLecranXmax && p.PositionY > config.General.ExterieurDeLecranYmin && p.PositionY < config.General.ExterieurDeLecranYmax && p.ScaleX >= 0.1 && p.ScaleY >= 0.1{
 			options := ebiten.DrawImageOptions{}
 			options.GeoM.Rotate(p.Rotation)
 			options.GeoM.Scale(p.ScaleX, p.ScaleY)

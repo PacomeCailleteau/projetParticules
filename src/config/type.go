@@ -20,6 +20,7 @@ type Config struct {
 	SpawnRate                float64
 	Gravite					 float64
 	Gravitation				 float64
+	Merge					 bool
 	ExterieurDeLecranXmin	 float64
 	ExterieurDeLecranXmax	 float64
 	ExterieurDeLecranYmin	 float64
@@ -27,6 +28,7 @@ type Config struct {
 	Rebond_bords			 bool
 	Rebond_particules		 bool
 	Acceleration			 float64
+	Duree_Vie				 float64
 }
 
 var General Config
