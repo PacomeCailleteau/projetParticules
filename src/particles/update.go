@@ -10,42 +10,65 @@ import ("math/rand";"time";"project-particles/config";"log";"math")
 func (s *System) Update() {
 
 	var particules []Particle = s.Content
+	var libres int = s.libres
+
+	if len(particules)-libres >=15000{
+		config.General.SpawnRate = 0
+	}
+
+	for i := 0; i < len(particules)-libres; i++ {
+		if particules[i].PositionX == 0{
+			particules[i].ColorRed = 0
+			particules[i].ColorBlue = 0
+			particules[i].ColorGreen = 0
+		}
+		if math.Sqrt((particules[i].PositionX - 400)*(particules[i].PositionX - 400)+(particules[i].PositionY - 400)*(particules[i].PositionY - 400)) < 150{
+			particules[i].ColorRed = math.Sqrt((particules[i].PositionX - 400)*(particules[i].PositionX - 400)+(particules[i].PositionY - 400)*(particules[i].PositionY - 400)) / 150
+		}else if math.Sqrt((particules[i].PositionX - 400)*(particules[i].PositionX - 400)+(particules[i].PositionY - 400)*(particules[i].PositionY - 400)) < 300{
+			particules[i].ColorBlue = (math.Sqrt((particules[i].PositionX - 400)*(particules[i].PositionX - 400)+(particules[i].PositionY - 400)*(particules[i].PositionY - 400))-150) / 150
+		}else {
+			particules[i].ColorGreen = (math.Sqrt((particules[i].PositionX - 400)*(particules[i].PositionX - 400)+(particules[i].PositionY - 400)*(particules[i].PositionY - 400))-300) / 150
+		}
+	}
 
 	if config.General.Duree_Vie > 0{
-		for i := 0; i < len(particules); i++ {
+		for i := 0; i < len(particules)-libres; i++ {
 			particules[i].Duree_Vie++
 			if particules[i].Duree_Vie > config.General.Duree_Vie{
-				particules = suppression(particules,i)
-			}
-		}
-	}
+				particules, libres = suppression(particules,i, s, libres)}}}
 
 	//Actualisation de la position des particules dans le tableau en fonction de leur vitesse
-	particules = deplacement(particules)//mise à jour de la position
+	particules = deplacement(particules, libres)//mise à jour de la position
 
-	if config.General.Rebond_bords{particules = rebond_bords(particules)}
+	if config.General.Rebond_bords{
+		particules = rebond_bords(particules, libres)}
 
-	if config.General.Rebond_particules{particules = rebond_particules(particules)}
+	if config.General.Rebond_particules{
+		particules = rebond_particules(particules, libres)}
 	
 	if config.General.Gravite != 0{
-		particules = gravite(particules)
+		particules = gravite(particules, libres)}
+
+	for i := 0; i < len(particules)-libres; i++ {
+		particules[i] = attraction(particules[i],0.03,0,true,400,400)
 	}
 
+	if config.General.Merge{
+		particules, libres = fusion(particules, s, libres)}
 
 	if config.General.Gravitation != 0{
-		particules = gravitation(particules)
-	}
+		particules = gravitation(particules, libres)}
+
 	if config.General.Acceleration != 1{
-		for i := 0; i < len(particules); i++ {
-			particules[i] = acceleration(particules[i])
-		}
-	}
+		for i := 0; i < len(particules)-libres; i++ {
+			particules[i] = acceleration(particules[i])}}
+
 
 	//Actualisation de la taille des particules en fonction de deux paramètres dans la fonction
-	particules = grossissement(particules,true,1)//mise à jour de la taille des particules
+	particules = grossissement(particules,true,1, libres)//mise à jour de la taille des particules
 
 	//Suppression des particules à oublier
-	particules = condition_suppression(particules, float64(config.General.ExterieurDeLecranXmin), float64(config.General.ExterieurDeLecranXmax), float64(config.General.ExterieurDeLecranYmin), float64(config.General.ExterieurDeLecranYmax), 0, -1)
+	particules, libres = condition_suppression(particules, float64(config.General.ExterieurDeLecranXmin), float64(config.General.ExterieurDeLecranXmax), float64(config.General.ExterieurDeLecranYmin), float64(config.General.ExterieurDeLecranYmax), 0, -1, s, libres)
 
 	//Calcul et ajout du bon nombre de particules à afficher durant l'appel de la fonction update dépandemment du SpawnRate
 	s.reste += float64(config.General.SpawnRate)//ajouter la valeur de demande du nombre de particules à ajouter
@@ -66,12 +89,29 @@ func (s *System) Update() {
 		var taille float64 = config.General.InitSizeParticles//Initialisation de la taille de la particule
 		var vitesse float64 = config.General.InitVitesseParticles //Initialisation de la vitesse de la particule
 		//utilisation des variables
-		particules = ajout(particules, x, y, taille, vitesse)
+		if libres == 0{
+			particules = ajout(particules, x, y, taille, vitesse)
+		}else{
+			particules[len(particules)-libres].PositionX = x
+			particules[len(particules)-libres].PositionY = y
+			particules[len(particules)-libres].ScaleX = taille
+			particules[len(particules)-libres].ScaleY = taille
+			//sa couleur aléatoire en RGB
+			particules[len(particules)-libres].ColorRed = rand.Float64()
+			particules[len(particules)-libres].ColorGreen = rand.Float64()
+			particules[len(particules)-libres].ColorBlue = rand.Float64()
+        	particules[len(particules)-libres].Opacity = 1//son opacité de 100%
+			var angle float64 = rand.Float64()*2*math.Pi
+        	particules[len(particules)-libres].SpeedX = math.Cos(angle)*vitesse
+        	particules[len(particules)-libres].SpeedY = math.Sin(angle)*vitesse
 
+        	libres--
+		}
 		s.reste -=1//noter qu'une particule a été ajoutée
 	}
 	s.Content = particules
-	log.Print(len(particules)," énergie = ",energie(particules))
+	s.libres = libres
+	log.Print(len(particules)-libres,"/",len(particules)," énergie = ",energie(particules, libres))
 }
 
 /*La fonction suppression sert à supprimer une particule contenue
@@ -82,8 +122,13 @@ Exemple :
 Départ : tableau = [particule1, particule2, particule3]
 tableau = suppression(tableau,1)
 Arrivée : tableau = [particule1, particule3]*/
-func suppression(particules []Particle, i int) []Particle {
-	return append(particules[:i], particules[i+1:]...)
+func suppression(particules []Particle, i int, systeme *System, libres int)([]Particle, int) {
+	libres = systeme.libres
+	particules[i].Opacity = 0
+	particules[i], particules[len(particules)-1-libres] = particules[len(particules)-1-libres], particules[i]
+	libres++
+	systeme.libres = libres
+	return particules, libres
 }
 
 /*La fonction deplacement sert à actualiser la position de chaque particule
@@ -95,18 +140,18 @@ Example :
 Départ : tableau = [particule1(avec position x = a,position y = b, avec vitesse x = c et vitesse y = d),particule2(avec position x = e,position y = f, avec vitesse x = g et vitesse y = h)]
 tableau = deplacement(tableau)
 Arrivée : tableau = [particule1(avec position x = a+c,position y = b+d, avec vitesse x = c et vitesse y = d),particule2(avec position x = e+g,position y = f+h, avec vitesse x = g et vitesse y = h)]*/
-func deplacement(particules []Particle) []Particle{
-	for i := 0; i < len(particules); i++ {
+func deplacement(particules []Particle, libres int) []Particle{
+	for i := 0; i < len(particules)-libres; i++ {
 		particules[i].PositionX += particules[i].SpeedX
 		particules[i].PositionY += particules[i].SpeedY
 	}
 	return particules
 }
 
-func rebond_bords(particules []Particle) []Particle{
+func rebond_bords(particules []Particle, libres int) []Particle{
 	var TailleX float64 = float64(config.General.WindowSizeX)
 	var TailleY float64 = float64(config.General.WindowSizeY)
-	for i := 0; i < len(particules); i++ {
+	for i := 0; i < len(particules)-libres; i++ {
 		//bord gauche
 		if particules[i].PositionX < 0{
 		particules[i].PositionX -= 2*particules[i].PositionX
@@ -131,9 +176,9 @@ func rebond_bords(particules []Particle) []Particle{
 	return particules
 }
 
-func gravite(particules []Particle) []Particle{
+func gravite(particules []Particle, libres int)[]Particle{
 	var gravite = config.General.Gravite
-	for i := 0; i < len(particules); i++ {
+	for i := 0; i < len(particules)-libres; i++ {
 		particules[i].SpeedY += gravite
 	}
 	return particules
@@ -147,8 +192,8 @@ si x n'appartient pas à [xmin;xmax]
 ou si y n'appartient pas à [ymin;ymax] 
 ou si z n'appartient pas à [zmin;zmax] 
 */
-func condition_suppression(particules []Particle, xmin,xmax, ymin,ymax float64, taillemin, taillemax float64) []Particle{
-	for i := 0; i < len(particules); i++ {
+func condition_suppression(particules []Particle, xmin,xmax, ymin,ymax float64, taillemin, taillemax float64, s *System, libres int)([]Particle, int){
+	for i := 0; i < len(particules)-libres; i++ {
 		//déclaration des variables
 		var PositionX float64 = particules[i].PositionX
 		var PositionY float64 = particules[i].PositionY
@@ -159,9 +204,9 @@ func condition_suppression(particules []Particle, xmin,xmax, ymin,ymax float64, 
 		PositionY < ymin || PositionY > ymax ||
 		tailleX < taillemin || tailleY < taillemin ||
 		(tailleX > taillemax || tailleY > taillemax) && taillemax !=-1{
-			particules = suppression(particules, i)}
+			particules, libres = suppression(particules, i, s, libres)}
 	}
-	return particules
+	return particules, libres
 }
 
 /*Actualisation de la taille de la particule
@@ -175,8 +220,8 @@ Exemple 2 :
 Départ : tableau(particule1(tailleX = a, tailleY = b),particule1(tailleX = c, tailleY = d))
 grossissement(tableau,true,taille)
 Arrivée : tableau(particule1(tailleX = a * size, tailleY = b * size ),particule1(tailleX = c * size, tailleY = d * size )*/
-func grossissement(particules []Particle, produit bool, size float64) []Particle{
-	for i := 0; i < len(particules); i++ {//pour toutes les particules
+func grossissement(particules []Particle, produit bool, size float64, libres int) []Particle{
+	for i := 0; i < len(particules)-libres; i++ {//pour toutes les particules
 		if !produit{//si on veux additionner ou soustraire une valeur à leur taille...
 			particules[i].ScaleX += size//..les agrandir ou les rétrécir en X
 			particules[i].ScaleY += size//..les agrandir ou les rétrécir en Y
@@ -237,9 +282,9 @@ func procheY(particule1, particule2 Particle)bool{
         if distanceY <= particule2.ScaleY*10{return true}}
     return false}
 
-func rebond_particules(particules []Particle) []Particle{
-    for i := 0; i < len(particules); i++ {//pour toutes les particules
-        for j := i+1; j < len(particules); j++ {//pour toutes les particules suivantes
+func rebond_particules(particules []Particle, libres int) []Particle{
+    for i := 0; i < len(particules)-libres; i++ {//pour toutes les particules
+        for j := i+1; j < len(particules)-libres; j++ {//pour toutes les particules suivantes
             if i != j{
                 if collision(particules[i],particules[j]){
                     particules[i].SpeedX,particules[j].SpeedX = particules[j].SpeedX,particules[i].SpeedX
@@ -253,22 +298,22 @@ func acceleration(particule Particle)Particle{
     return particule
 }
 
-func energie(particules []Particle)float64{
+func energie(particules []Particle, libres int)float64{
     var energie float64
     //centre X
     var centreX float64
-    for i := 0; i < len(particules); i++ {
+    for i := 0; i < len(particules)-libres; i++ {
         centreX += particules[i].PositionX
     }
-    centreX /= float64(len(particules))
+    centreX /= float64(len(particules)-libres)
     //centre Y
     var centreY float64
-    for i := 0; i < len(particules); i++ {
+    for i := 0; i < len(particules)-libres; i++ {
         centreY += particules[i].PositionY
     }
-    centreY /= float64(len(particules))
+    centreY /= float64(len(particules)-libres)
     //calcul énergie mécanique
-    for i := 0; i < len(particules); i++ {//pour toutes les particules
+    for i := 0; i < len(particules)-libres; i++ {//pour toutes les particules
         var energie_cinetique float64 = masse(particules[i])*(particules[i].SpeedX*particules[i].SpeedX+particules[i].SpeedY*particules[i].SpeedY)/2
         var distanceX float64 = particules[i].PositionX-centreX
         var distanceY float64 = particules[i].PositionY-centreY
@@ -283,41 +328,66 @@ func attraction(particule Particle, force float64, angle float64, position bool,
         var distanceY float64 = y - particule.PositionY
         angle = math.Atan(distanceY/distanceX)
     }else{
-        angle *= (2*math.Pi)/360
+        angle *= -(2*math.Pi)/360
     }
-    if particule.PositionX < x{force=-force}
+    if particule.PositionX > x{force=-force}
     particule.SpeedX += math.Cos(angle)*force
     particule.SpeedY += math.Sin(angle)*force
     return particule
 }
 
-func gravitation(particules []Particle)[]Particle{
-    for i := 0; i < len(particules); i++ {
-        for j := 0; j < len(particules); j++ {
-            if i != j{
-                var distance float64 = ((particules[i].PositionX+particules[i].ScaleX*5-particules[j].ScaleX*5) - (particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5))*((particules[i].PositionX+particules[i].ScaleX*5-particules[j].ScaleX*5) - (particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5)) + ((particules[i].PositionY+particules[i].ScaleY*5-particules[j].ScaleY*5) - (particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5))*((particules[i].PositionY+particules[i].ScaleY*5-particules[j].ScaleY*5) - (particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5))
-                if (distance < particules[i].ScaleX*10 || distance < particules[j].ScaleX*10) && config.General.Merge{
-                	particules[i] = growth(particules[i],particules[j].ScaleX*particules[j].ScaleY)
-                	particules[i].SpeedX += particules[j].SpeedX*(masse(particules[j])/masse(particules[i]))
-                	particules[i].SpeedY += particules[j].SpeedY*(masse(particules[j])/masse(particules[i]))
-                	particules[i].SpeedX *= masse(particules[j])/(masse(particules[i])+masse(particules[j]))
-                	particules[i].SpeedY *= masse(particules[j])/(masse(particules[i])+masse(particules[j]))
-                	particules = suppression(particules,j)
-           		}else{
-                	if distance < 60{distance = 60}
-           			particules[i] = attraction(particules[i], masse(particules[j])*config.General.Gravitation*(1/(distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5)
-           			particules[i] = attraction(particules[i], -100*masse(particules[j])*config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5-particules[i].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5-particules[i].ScaleY*5)
-                }
-            }
-        }
-    }
-    return particules
+func fusion(particules []Particle, s *System, libres int)([]Particle, int){
+	if config.General.Gravitation != 0{
+	    for i := 0; i < len(particules)-libres; i++ {
+	        for j := 0; j < len(particules)-libres; j++ {
+	            if i != j{
+	                if distance(particules[i], particules[j]) < particules[i].ScaleX*5 && config.General.Merge{
+
+	                	if particules[i].ScaleX < particules[j].ScaleX{//inversion de l'odre des particules pour s'assurer que la 1 est plus grosse ou égale (en taille)
+	                		particules[i],particules[j] = particules[j],particules[i]
+	                	}
+						particules[i].SpeedX += particules[j].SpeedX*(masse(particules[j])/masse(particules[j]))
+						particules[i].SpeedY += particules[j].SpeedY*(masse(particules[j])/masse(particules[j]))
+						particules[i].SpeedX *= masse(particules[j])/(masse(particules[j])+masse(particules[j]))
+						particules[i].SpeedY *= masse(particules[j])/(masse(particules[j])+masse(particules[j]))
+						particules[i] = growth(particules[i], masse(particules[j]))
+	                	particules, libres = suppression(particules,j, s, libres)
+	}}}}}
+    return particules, libres
+}
+
+func gravitation(particules []Particle, libres int)[]Particle{
+	for i := 0; i < len(particules)-libres; i++ {
+		for j := 0; j < len(particules)-libres; j++ {
+			if i != j{
+				var distance float64 = distance(particules[i], particules[j])
+				if distance < 60{distance = 60}
+				particules[i] = attraction(particules[i], masse(particules[j])*config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5)
+		        //particules[i] = attraction(particules[i], -10*masse(particules[j])*config.General.Gravitation*(1/(distance*distance)), 0, true, particules[j].PositionX+particules[j].ScaleX*5, particules[j].PositionY+particules[j].ScaleY*5)
+			}
+		}
+	}
+	return particules
 }
 
 func masse(particule Particle)float64{return particule.ScaleX*particule.ScaleY}
 
-func growth(particule Particle, x float64)Particle{
+func growth(particule Particle, x float64)Particle{//ajoute x en surface totale
 	particule.ScaleX = math.Sqrt(particule.ScaleX*particule.ScaleY+x)
 	particule.ScaleY = math.Sqrt(particule.ScaleX*particule.ScaleY+x)
 	return particule
+}
+
+func distance(particule1, particule2 Particle) float64{
+	//centres des particules
+	var centreX1 float64 = particule1.PositionX + particule1.ScaleX*5
+	var centreY1 float64 = particule1.PositionY + particule1.ScaleY*5
+	var centreX2 float64 = particule2.PositionX + particule2.ScaleX*5
+	var centreY2 float64 = particule2.PositionY + particule2.ScaleY*5
+	//distances entre les particules
+	var distanceX float64 = centreX2 - centreX1
+	var distanceY float64 = centreY2 - centreY1
+	var distance float64 = math.Sqrt(distanceX*distanceX + distanceY*distanceY)
+	//renvoie true si la particule est à absorber, false sinon (en fonction de la distance les séparant et de leur taille)
+	return distance
 }

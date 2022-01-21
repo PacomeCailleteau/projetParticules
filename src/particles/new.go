@@ -1,6 +1,6 @@
 package particles
 
-import ("project-particles/config";"math/rand";"time";"log")
+import ("project-particles/config";"math/rand";"time")
 
 // NewSystem est une fonction qui initialise un système de particules et le
 // retourne à la fonction principale du projet, qui se chargera de l'afficher.
@@ -11,30 +11,19 @@ func NewSystem() System {
 	rand.Seed(time.Now().UnixNano())
 	var nombre_particules int = config.General.InitNumParticles
 	var particules []Particle
-	var compte int = 1
 	if config.General.RandomSpawn{
 		for i := 0; i < nombre_particules; i++ {
-			rand.Seed(time.Now().UnixNano())
 			var x float64 = rand.Float64()* float64(config.General.WindowSizeX)
 			var y float64 = rand.Float64()* float64(config.General.WindowSizeY)
-			if len(particules) != 0{
-				for particules[len(particules)-1].PositionX-x < 15 && particules[len(particules)-1].PositionY-y < 15{
-					rand.Seed(time.Now().UnixNano())
-					x = rand.Float64()* float64(config.General.WindowSizeX)
-					y = rand.Float64()* float64(config.General.WindowSizeY)
-					compte++
-					log.Print(compte)
-				}
-			}
-			var taille float64 = /*rand.Float64()**/config.General.InitSizeParticles
+			var taille float64 = /*rand.Float64()*2*/config.General.InitSizeParticles
 			var vitesse float64 = config.General.InitVitesseParticles
 			particules = ajout(particules,x,y,taille,vitesse)
 		}
 	}else{
 		var x float64 = float64(config.General.SpawnX)
 		var y float64 = float64(config.General.SpawnY)
-		var taille float64 = rand.Float64()*2
-		var vitesse float64 = 5
+		var taille float64 = /*rand.Float64()*2*/config.General.InitSizeParticles
+		var vitesse float64 = config.General.InitVitesseParticles
 		for i := 0; i < nombre_particules; i++ {
 			particules = ajout(particules,x,y,taille,vitesse)
 		}

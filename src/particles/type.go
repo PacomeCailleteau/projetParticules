@@ -6,6 +6,7 @@ package particles
 type System struct {
 	Content []Particle
 	reste float64
+	libres int
 }
 
 // Particle définit une particule.

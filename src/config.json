@@ -1,32 +1,32 @@
 {
 	"WindowTitle": "Project particles",
 
-	"WindowSizeX": 1900,
-  	"WindowSizeY": 950,
-  	"ExterieurDeLecranXmin": -20,
-	"ExterieurDeLecranXmax": 1920,
-	"ExterieurDeLecranYmin": -20,
-	"ExterieurDeLecranYmax": 970,
+	"WindowSizeX": 800,
+  	"WindowSizeY": 800,
+  	"ExterieurDeLecranXmin": -100020,
+	"ExterieurDeLecranXmax": 180020,
+	"ExterieurDeLecranYmin": -100020,
+	"ExterieurDeLecranYmax": 180020,
 
 	"ParticleImage": "assets/particle.png",
 	"Debug": true,
 
-	"InitNumParticles": 150,
-	"InitSizeParticles": 0.1,
-	"InitVitesseParticles": 0.05,
-	"Acceleration": 0.997,
+	"InitNumParticles": 100,
+	"InitSizeParticles": 0.5,
+	"InitVitesseParticles": 1,
+	"Acceleration": 1.001,
 
-	"RandomSpawn": true,
+	"RandomSpawn": false,
 	"SpawnX": 400,
-	"SpawnY": 300,
-	"SpawnRate": 0,
+	"SpawnY": 400,
+	"SpawnRate": 10,
 
 	"Gravite" : 0,
-	"Gravitation": -1,
-	"Merge": true,
+	"Gravitation": 0,
+	"Merge": false,
 
-	"Rebond_bords": true,
+	"Rebond_bords": false,
 	"Rebond_particules": false,
 
-	"Duree_Vie": 1000
+	"Duree_Vie": 4000
 }
