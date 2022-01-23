@@ -114,7 +114,7 @@ func (s *System) Update() {
 	}
 	s.Content = particules
 	s.libres = libres
-	log.Print(len(particules)-libres,"/",len(particules)," énergie = ",energie(particules, libres))
+	log.Print(len(particules)-libres,"/",len(particules))
 }
 
 /*La fonction suppression sert à supprimer une particule contenue
@@ -263,14 +263,25 @@ func ajout(particules []Particle, PositionX, PositionY, taille, mult_vitesse flo
     return particules
 }
 
-
+/*Renvoie la valeur absolue du flottant envoyé en entrée.
+Prend en entrée un flottant et renvoie un flottant opposé si négatif, le même sinon.
+Exemples :
+Départ : x = 7
+x = abs(x)
+Arrivée : x = 7
+Départ : x = -13
+x = abs(x)
+Arrivée : x = 13*/
 func abs(n float64) float64{
     if n < 0{return -n}else{return n}}
 
-
+/*Vérifie si deux particules sont suffisemment proches pour se toucher.
+Prend en entrée deux particules et renvoie un booléen valant true ssi les particules se touches.*/
 func collision(particule1, particule2 Particle) bool{
     if procheX(particule1,particule2) && procheY(particule1,particule2){return true}else{return false}}
 
+/*Vérifie si deux particules sont suffissement proches pour se toucher sur l'axe X
+Prend en entrée deux particules et renvoie un booléen ssi les particules se touchent par rapport à leur coordonnée X*/
 func procheX(particule1, particule2 Particle)bool{
     var distanceX float64 = abs(particule2.PositionX - particule1.PositionX)
     if particule1.PositionX < particule2.PositionX{//X 1-->2
@@ -279,6 +290,8 @@ func procheX(particule1, particule2 Particle)bool{
         if distanceX <= particule2.ScaleX*10{return true}}
     return false}
 
+/*Vérifie si deux particules sont suffissement proches pour se toucher sur l'axe X
+Prend en entrée deux particules et renvoie un booléen ssi les particules se touchent par rapport à leur coordonnée Y*/
 func procheY(particule1, particule2 Particle)bool{
     var distanceY float64 = abs(particule2.PositionY - particule1.PositionY)
     if particule1.PositionY < particule2.PositionY{//X 1-->2
@@ -287,6 +300,9 @@ func procheY(particule1, particule2 Particle)bool{
         if distanceY <= particule2.ScaleY*10{return true}}
     return false}
 
+/*Fait rebondir les particules lorsqu'elles se touchent.
+Prend en entrée un tableau de particules ainsi que le nombre de particules à ne plus considérer car telles que supprimées
+et renvoie le tableau de particules avec la vitesse changée si nécessaire (en cas de collision).*/
 func rebond_particules(particules []Particle, libres int) []Particle{
     for i := 0; i < len(particules)-libres; i++ {//pour toutes les particules
         for j := i+1; j < len(particules)-libres; j++ {//pour toutes les particules suivantes
@@ -297,12 +313,24 @@ func rebond_particules(particules []Particle, libres int) []Particle{
     }}}}
     return particules}
 
+/*Fait, à chaque ittération d'appel d'Update(), accélérer ou ralentir les particules en fonction d'une configuration du fichier correspondant.
+Prend en entrée une particule et en renvoie une autre dont sa vitesse a été altérée (multipliée par la valeur correspondante).
+Exemple :
+Départ : particule.SpeedX = 4
+particule = acceleration(particule) //avec config.General.Acceleration valant 1.5
+Arrivée : particule.SpeedX = 6*/
 func acceleration(particule Particle)Particle{
     particule.SpeedX *= config.General.Acceleration
     particule.SpeedY *= config.General.Acceleration
     return particule
 }
 
+//Pas necessaire, était simplement un outils pour nous aider à comprendre les interactions entre particules...
+//(les calculs manquent beaucoup de rigueur et ne nous donnaient qu'un ordre d'idée)
+/*Prend en entrée un tableau de particules ainsi que le nombre de particules à ne plus considérer car telles que supprimées
+et renvoie une valeur correspondant au logarithme base 10 de l'energie correspondante du tableau de particules (sans unité cherchée à être définie)
+Calcule la somme des énergies cinétiques et potentielles de chaque particule.
+Pour l'energie potentielle, la référence est faite par rapport au milieu des particules.*/
 func energie(particules []Particle, libres int)float64{
     var energie float64
     //centre X
@@ -327,6 +355,14 @@ func energie(particules []Particle, libres int)float64{
     return math.Log(energie)
 }
 
+/*Modifie la vitesse d'une particule pour l'a faire (appel par appel) 'accélérer' dans la direction voulue, vers l'infini ou vers un point.
+Prend en entrée une particule, une intensité de force d'accélération en flottant, un angle en degrés, flottant,
+un booléen pour le choix entre l'utilisation de l'angle (point vers l'infini) ou des coordonnées d'un réel point,
+donc aussi x et y, deux flottant pour les coordonnées x et y de ce point.
+Elle renvoie la particule dont les vitesse ont été altérées.
+Exemple :
+si position = false, particule accélérée de l'intesité force dans la direction de l'angle
+si position = true, particule accélérée de l'intensité force dans la direction de ce point*/
 func attraction(particule Particle, force float64, angle float64, position bool, x, y float64)Particle{
     if position{//si attraction vers un point
         var distanceX float64 = x - particule.PositionX
@@ -341,6 +377,12 @@ func attraction(particule Particle, force float64, angle float64, position bool,
     return particule
 }
 
+/*Fusionne les particules trop proches en fonction de leur masse et leur vitesse.
+Prend en entrée un tableau de particules, un pointeur vers le système de particules (pour utiliser correctement la fonction suppression),
+ainsi que le nombre de particules à ne plus considérer car telles que supprimées.
+Elle renvoie le tableau de particules modifié et le nombres de particules à ne plus considérer (libres).
+Si le centre d'une particule est, d'une autre particule, à une distance inférieure à la moitié de sa taille, la fonction les fusionne.
+La fonction additionne en podérant par masse ses vitesses ainsi que somme la masse (carré de la taille) des deux particules.*/
 func fusion(particules []Particle, s *System, libres int)([]Particle, int){
 	for i := 0; i < len(particules)-libres; i++ {
 	    for j := 0; j < len(particules)-libres; j++ {
@@ -357,6 +399,12 @@ func fusion(particules []Particle, s *System, libres int)([]Particle, int){
     return particules, libres
 }
 
+/*Applique une attraction entre toute les particules avec une intensitée proportinnelle à l'inverse du carré de la distance les séparant
+multipliée par la masse de celle vers laquelle on attire la particule.
+Pour des raisons d'approximations des modèles informatiques, l'accélération est limitée à une certaine valeur
+afin d'éviter les problèmes en cas de trop grands rapporchements.
+Génère donc simplement une sorte de chanp gravitationnel pour toutes les particules.
+Prend en entrée un tableau de particules ainsi que le nombre de particules à ne plus considérer car telles que supprimées et en ressort un altéré.*/
 func gravitation(particules []Particle, libres int)[]Particle{
 	for i := 0; i < len(particules)-libres; i++ {
 		for j := 0; j < len(particules)-libres; j++ {
@@ -371,8 +419,10 @@ func gravitation(particules []Particle, libres int)[]Particle{
 	return particules
 }
 
+/*Calcule la 'masse' d'une particule en multipliant son échelle X et celle Y.*/
 func masse(particule Particle)float64{return particule.ScaleX*particule.ScaleY}
 
+/*Agrandi la surface d'une particule d'une certaine valeur.*/
 func growth(particule Particle, x float64)Particle{//ajoute x en surface totale
 	var tailleX float64 = particule.ScaleX
 	var tailleY float64 = particule.ScaleY
@@ -381,6 +431,7 @@ func growth(particule Particle, x float64)Particle{//ajoute x en surface totale
 	return particule
 }
 
+/*Calcule la distance entre le centre de deux particules.*/
 func distance(particule1, particule2 Particle) float64{
 	//centres des particules
 	var centreX1 float64 = particule1.PositionX + particule1.ScaleX*5
