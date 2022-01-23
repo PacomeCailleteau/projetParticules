@@ -3,23 +3,28 @@
 
 	"WindowSizeX": 800,
   	"WindowSizeY": 800,
-  	"ExterieurDeLecranXmin": -100020,
-	"ExterieurDeLecranXmax": 180020,
-	"ExterieurDeLecranYmin": -100020,
-	"ExterieurDeLecranYmax": 180020,
+  	"ExterieurDeLecranXmin": -20,
+	"ExterieurDeLecranXmax": 820,
+	"ExterieurDeLecranYmin": -20,
+	"ExterieurDeLecranYmax": 820,
 
 	"ParticleImage": "assets/particle.png",
 	"Debug": true,
 
 	"InitNumParticles": 100,
 	"InitSizeParticles": 0.5,
-	"InitVitesseParticles": 1,
-	"Acceleration": 1.001,
+	"Grossissement": 1,
+	"InitVitesseParticles": 2,
+	"Acceleration": 1,
 
 	"RandomSpawn": false,
 	"SpawnX": 400,
 	"SpawnY": 400,
-	"SpawnRate": 10,
+	"SpawnRate": 20,
+
+	"Attraction": 1.06,
+	"AttractionX": 400,
+	"AttractionY": 400,
 
 	"Gravite" : 0,
 	"Gravitation": 0,
@@ -28,5 +33,6 @@
 	"Rebond_bords": false,
 	"Rebond_particules": false,
 
-	"Duree_Vie": 4000
+	"Duree_Vie": 8000,
+	"Nombre_Particules_Max": 15000
 }

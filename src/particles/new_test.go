@@ -242,6 +242,7 @@ func Test_Creation_Particule_New_System(t *testing.T){
 }
 
 func Test_Spawn_Rate1(t *testing.T){
+	config.General.Nombre_Particules_Max = -1
 	config.General.SpawnRate = 1//initialisation du taux d'apparition
 	var systeme System//création d'un nouveau système de particules
 	systeme.Update()//actialisation du système de particules
@@ -565,7 +566,7 @@ func Test_attraction5(t *testing.T){
 }
 
 
-func Test_gravitation1(t *testing.T){
+func Test_gravitation_positive(t *testing.T){
 	config.General.Gravitation = 1
 	config.General.InitNumParticles = 100
 	var systeme System = NewSystem()
@@ -608,5 +609,196 @@ func Test_gravitation1(t *testing.T){
 	distance_moyenne2 /= float64(len(systeme.Content))
 	if distance_moyenne1 <= distance_moyenne2 {
 		t.Error("Il n'y a pas de gravitation")
+	}
+}
+
+func Test_gravitation_nulle(t *testing.T){
+	config.General.Gravitation = 0
+	config.General.InitNumParticles = 100
+	var systeme System = NewSystem()
+	for i := 0; i < len(systeme.Content); i++ {
+		systeme.Content[i].SpeedX = 0
+		systeme.Content[i].SpeedY = 0 
+	}
+	var centreX1 float64
+	var centreY1 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		centreX1 += systeme.Content[i].PositionX
+		centreY1 += systeme.Content[i].PositionY
+	}
+	centreX1 /= float64(len(systeme.Content))
+	centreY1 /= float64(len(systeme.Content))
+	var distance_moyenne1 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		distance_moyenne1 += math.Sqrt((systeme.Content[i].PositionX - centreX1)*(systeme.Content[i].PositionX - centreX1) +(systeme.Content[i].PositionY - centreY1)*(systeme.Content[i].PositionY - centreY1))
+	}
+	distance_moyenne1 /= float64(len(systeme.Content))
+	systeme.Content = gravitation(systeme.Content, 0)
+	systeme.Content = deplacement(systeme.Content, 0)
+
+	for i := 0; i < len(systeme.Content); i++ {
+		systeme.Content[i].SpeedX = 0
+		systeme.Content[i].SpeedY = 0 
+	}
+	var centreX2 float64
+	var centreY2 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		centreX2 += systeme.Content[i].PositionX
+		centreY2 += systeme.Content[i].PositionY
+	}
+	centreX2 /= float64(len(systeme.Content))
+	centreY2 /= float64(len(systeme.Content))
+	var distance_moyenne2 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		distance_moyenne2 += math.Sqrt((systeme.Content[i].PositionX - centreX2)*(systeme.Content[i].PositionX - centreX2) +(systeme.Content[i].PositionY - centreY2)*(systeme.Content[i].PositionY - centreY2))
+	}
+	distance_moyenne2 /= float64(len(systeme.Content))
+	if distance_moyenne1 <= distance_moyenne2 {
+		t.Error("Il n'y a pas de gravitation")
+	}
+}
+
+func Test_gravitation_négative(t *testing.T){
+	config.General.Gravitation = -1
+	config.General.InitNumParticles = 100
+	var systeme System = NewSystem()
+	for i := 0; i < len(systeme.Content); i++ {
+		systeme.Content[i].SpeedX = 0
+		systeme.Content[i].SpeedY = 0 
+	}
+	var centreX1 float64
+	var centreY1 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		centreX1 += systeme.Content[i].PositionX
+		centreY1 += systeme.Content[i].PositionY
+	}
+	centreX1 /= float64(len(systeme.Content))
+	centreY1 /= float64(len(systeme.Content))
+	var distance_moyenne1 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		distance_moyenne1 += math.Sqrt((systeme.Content[i].PositionX - centreX1)*(systeme.Content[i].PositionX - centreX1) +(systeme.Content[i].PositionY - centreY1)*(systeme.Content[i].PositionY - centreY1))
+	}
+	distance_moyenne1 /= float64(len(systeme.Content))
+	systeme.Content = gravitation(systeme.Content, 0)
+	systeme.Content = deplacement(systeme.Content, 0)
+
+	for i := 0; i < len(systeme.Content); i++ {
+		systeme.Content[i].SpeedX = 0
+		systeme.Content[i].SpeedY = 0 
+	}
+	var centreX2 float64
+	var centreY2 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		centreX2 += systeme.Content[i].PositionX
+		centreY2 += systeme.Content[i].PositionY
+	}
+	centreX2 /= float64(len(systeme.Content))
+	centreY2 /= float64(len(systeme.Content))
+	var distance_moyenne2 float64
+	for i := 0; i < len(systeme.Content); i++ {
+		distance_moyenne2 += math.Sqrt((systeme.Content[i].PositionX - centreX2)*(systeme.Content[i].PositionX - centreX2) +(systeme.Content[i].PositionY - centreY2)*(systeme.Content[i].PositionY - centreY2))
+	}
+	distance_moyenne2 /= float64(len(systeme.Content))
+	if distance_moyenne1 <= distance_moyenne2 {
+		t.Error("Il n'y a pas de gravitation")
+	}
+}
+
+func Test_fusion1(t *testing.T){
+	config.General.Merge = true
+	config.General.InitNumParticles = 100
+	config.General.Rebond_bords = true
+	var particule1 Particle
+	var particule2 Particle
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	var libres int
+	var systeme System
+	systeme.Content = append(systeme.Content, particule1)
+	systeme.Content = append(systeme.Content, particule2)
+	systeme.Content, libres = fusion(systeme.Content, &systeme, libres)
+	if libres != 1{
+		t.Error("Il n'y a pas eu de fusion")
+	}
+}
+
+func Test_fusion2(t *testing.T){
+	config.General.Merge = true
+	config.General.InitNumParticles = 100
+	config.General.Rebond_bords = true
+	var particule1 Particle
+	var particule2 Particle
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 3
+	particule2.ScaleY = 3
+	var libres int
+	var systeme System
+	systeme.Content = append(systeme.Content, particule1)
+	systeme.Content = append(systeme.Content, particule2)
+	systeme.Content, libres = fusion(systeme.Content, &systeme, libres)
+	if masse(systeme.Content[0]) < 13-10e-12 || masse(systeme.Content[0]) > 13+10e+12{
+		t.Error("Il n'y a pas eu de fusion")
+	}
+}
+
+func Test_fusion3(t *testing.T){
+	config.General.Merge = true
+	config.General.InitNumParticles = 100
+	config.General.Rebond_bords = true
+	var particule1 Particle
+	var particule2 Particle
+	particule1.ScaleX = 1
+	particule1.ScaleY = 1
+	particule2.ScaleX = 1
+	particule2.ScaleY = 1
+	var libres int
+	var systeme System
+	systeme.Content = append(systeme.Content, particule1)
+	systeme.Content = append(systeme.Content, particule2)
+	systeme.Content, libres = fusion(systeme.Content, &systeme, libres)
+	if masse(systeme.Content[0]) < 2-10e12 || masse(systeme.Content[0]) > 2+10e12{
+		t.Error("Il n'y a pas eu de fusion")
+	}
+}
+
+func Test_masse(t *testing.T){
+	var particule Particle
+	particule.ScaleX = 2
+	particule.ScaleY = 3
+	if masse(particule) != 6{
+		t.Error("La particule n'a pas la bonne masse")
+	}
+}
+
+func Test_growth(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 3
+	particule2.ScaleY = 3
+	var masse_particule = masse(particule2)
+	var particule3 Particle = growth(particule1,masse_particule)
+	if masse(particule3) < 13-10e12 || masse(particule3) > 13+10e12{
+		t.Error("Le grossissement n'est pas le bon")
+	}
+}
+
+func Test_distance(t *testing.T){
+	var particule1 Particle
+	var particule2 Particle
+	particule1.PositionX = 500
+	particule1.PositionY = 100
+	particule2.PositionX = 300
+	particule2.PositionY = 700
+	particule1.ScaleX = 2
+	particule1.ScaleY = 2
+	particule2.ScaleX = 2
+	particule2.ScaleY = 2
+	if distance(particule1,particule2) < 200-10e12 || distance(particule1,particule2) > 200+10e12{
+		t.Error("Il n'y a pas la bonne distance entre les deux particules")
 	}
 }

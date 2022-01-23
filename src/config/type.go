@@ -29,6 +29,11 @@ type Config struct {
 	Rebond_particules		 bool
 	Acceleration			 float64
 	Duree_Vie				 float64
+	Nombre_Particules_Max	 float64
+	Attraction			 	 float64
+	AttractionX			 	 float64
+	AttractionY			 	 float64
+	Grossissement		 	 float64
 }
 
 var General Config

@@ -16,7 +16,7 @@ import (
 // régulière.
 func main() {
 
-	config.Get("config.json")
+	config.Get("config6.json")
 	assets.Get()
 
 	ebiten.SetWindowTitle(config.General.WindowTitle)
